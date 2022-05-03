@@ -62,6 +62,8 @@ class MainWindow : public QMainWindow
 	public:
 		explicit MainWindow(Settings *settings, QWidget *parent = nullptr);
 		~MainWindow() override;
+        
+        Settings* getSettings() {return settings;};
 };
 
 #endif //CHIAKI_MAINWINDOW_H

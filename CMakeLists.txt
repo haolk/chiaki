@@ -176,3 +176,4 @@ endif()
 if(CHIAKI_ENABLE_BOREALIS)
 	add_subdirectory(switch)
 endif()
+

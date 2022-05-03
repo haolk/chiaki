@@ -21,10 +21,13 @@
 #include "controllermanager.h"
 #include "settings.h"
 
+#include "jsevent.h"
+
 #include <QObject>
 #include <QImage>
 #include <QMouseEvent>
 #include <QTimer>
+
 
 class QAudioOutput;
 class QIODevice;
@@ -126,6 +129,9 @@ class StreamSession : public QObject
 		void HandleKeyboardEvent(QKeyEvent *event);
 		void HandleMouseEvent(QMouseEvent *event);
 
+        
+        void SendJSEvent(JSEvent_Struct event);
+        
 	signals:
 		void FfmpegFrameAvailable();
 		void SessionQuit(ChiakiQuitReason reason, const QString &reason_str);

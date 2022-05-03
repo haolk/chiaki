@@ -8,6 +8,18 @@
 
 #include <chiaki/ffmpegdecoder.h>
 
+#include <zmq.h>
+extern "C"
+{
+	#include <libavcodec/avcodec.h>
+}
+extern "C"
+{
+	#include "libswscale/swscale.h"
+}
+
+#include <opencv2/core/core.hpp>
+
 class StreamSession;
 class AVOpenGLWidget;
 class QSurface;
@@ -22,11 +34,17 @@ class AVOpenGLFrameUploader: public QObject
 		QOpenGLContext *context;
 		QSurface *surface;
 
+	private:
+		void *z_context;
+		void *z_socket;
+		void SendFrame(AVFrame *frame);
+
 	private slots:
 		void UpdateFrameFromDecoder();
 
 	public:
 		AVOpenGLFrameUploader(StreamSession *session, AVOpenGLWidget *widget, QOpenGLContext *context, QSurface *surface);
+		~AVOpenGLFrameUploader();
 };
 
 #endif // CHIAKI_AVOPENGLFRAMEUPLOADER_H
