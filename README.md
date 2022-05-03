@@ -38,6 +38,9 @@ You can download them [here](https://git.sr.ht/~thestr4ng3r/chiaki/refs).
 Dependencies are CMake, Qt 5 with QtMultimedia, QtOpenGL and QtSvg, FFMPEG (libavcodec with H264 is enough), libopus, OpenSSL 1.1, SDL 2,
 protoc and the protobuf Python library (only used during compilation for Nanopb). Then, Chiaki builds just like any other CMake project:
 ```
+export Qt5_DIR=/opt/homebrew/opt/qt@5/lib/cmake/Qt5
+export MACOSX_DEPLOYMENT_TARGET=11
+export CPATH=/opt/homebrew/include
 git submodule update --init
 mkdir build && cd build
 cmake ..
