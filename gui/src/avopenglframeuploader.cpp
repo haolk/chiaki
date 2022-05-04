@@ -30,11 +30,13 @@ AVOpenGLFrameUploader::AVOpenGLFrameUploader(StreamSession *session, AVOpenGLWid
     }
     assert(mainWnd);
     
-    if (mainWnd->getSettings()->GetDispatchServerState())
+    if (mainWnd->getSettings()->GetFrameZMQState())
     {
         z_context = zmq_ctx_new();    
-        z_socket = zmq_socket(z_context, ZMQ_PAIR);
-        zmq_connect(z_socket, mainWnd->getSettings()->GetDispatchServerAddr().toStdString().c_str());
+        z_socket = zmq_socket(z_context, ZMQ_PUSH);
+        int on = 1;
+        zmq_setsockopt(z_socket, ZMQ_IMMEDIATE, &on, sizeof(on));
+        zmq_bind(z_socket, mainWnd->getSettings()->GetFrameZMQAddr().toStdString().c_str());
     }     
 }
 
@@ -45,6 +47,7 @@ AVOpenGLFrameUploader::~AVOpenGLFrameUploader()
     {
         zmq_close(z_socket);
         zmq_ctx_destroy(z_context);
+        z_context = z_socket = NULL;
     }
 }
 
@@ -91,7 +94,7 @@ void AVOpenGLFrameUploader::SendFrame(AVFrame *frame)
         int rc = zmq_msg_init_size(&msg, buf_len);
         assert(rc==0);
         memcpy(zmq_msg_data(&msg), buf, buf_len);
-        rc = zmq_msg_send(&msg, z_socket, 0);
+        rc = zmq_msg_send(&msg, z_socket, ZMQ_DONTWAIT);
 
         delete[] buf;
     }

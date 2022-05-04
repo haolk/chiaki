@@ -63,12 +63,18 @@ class Settings : public QObject
 		void SetLogVerbose(bool enabled)		{ settings.setValue("settings/log_verbose", enabled); }
 		uint32_t GetLogLevelMask();
 
-        bool GetDispatchServerState() const {return settings.value("settings/dispatch_server_on", true).toBool(); }
-        void SetDispatchServerState(bool enabled)  { settings.setValue("settings/dispatch_server_on", enabled); }
+        bool GetFrameZMQState() const {return settings.value("settings/frame_zmq_on", true).toBool(); }
+        void SetFrameZMQState(bool enabled)  { settings.setValue("settings/frame_zmq_on", enabled); }
         
-        QString GetDispatchServerAddr() const { return settings.value("settings/dispatch_server_addr", "tcp://localhost:5555").toString(); };
-        void SetDispatchServerAddr(QString addr) { settings.setValue("settings/dispatch_server_addr", addr); };
+        QString GetFrameZMQAddr() const { return settings.value("settings/frame_zmq_addr", "tcp://localhost:5555").toString(); };
+        void SetFrameZMQAddr(QString addr) { settings.setValue("settings/frame_zmq_addr", addr); };
         
+        bool GetCmdZMQState() const {return settings.value("settings/cmd_zmq_on", true).toBool(); }
+        void SetCmdZMQState(bool enabled)  { settings.setValue("settings/cmd_zmq_on", enabled); }
+        
+        QString GetCmdZMQAddr() const { return settings.value("settings/cmd_zmq_addr", "tcp://localhost:5556").toString(); };
+        void SetCmdZMQAddr(QString addr) { settings.setValue("settings/cmd_zmq_addr", addr); };
+
 		ChiakiVideoResolutionPreset GetResolution() const;
 		void SetResolution(ChiakiVideoResolutionPreset resolution);
 

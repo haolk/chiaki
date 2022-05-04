@@ -10,6 +10,8 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 #include <QAction>
+#include <mainwindow.h>
+#include <QApplication>
 
 JSEventListener::JSEventListener(StreamSession *s)
 {
@@ -25,24 +27,35 @@ JSEventListener::JSEventListener(StreamSession *s)
 
 void JSEventListener::run()
 {
-    int rc;
-    printf("binding localhost:5556");
-    rc = zmq_bind(z_socket, "tcp://*:5556");
-    assert(rc==0);
-    while (!stop)
+
+	MainWindow *mainWnd = NULL;
+    int idx = 0;
+    while (idx < qApp->topLevelWidgets().length() && mainWnd == NULL)
     {
-        zmq_msg_t msg;
-        rc = zmq_msg_init(&msg);
-        assert(rc==0);
-        rc = zmq_msg_recv(&msg, z_socket, 0);
-        if (rc != -1)
-        {
-            JSEvent_Struct event;
-            memcpy(&event, zmq_msg_data(&msg), zmq_msg_size(&msg));
-            session->SendJSEvent(event);
-//             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Key press delay should be handled by the client
-        }
+        mainWnd = dynamic_cast<MainWindow*>(qApp->topLevelWidgets()[idx]);
+        idx++;
     }
+    assert(mainWnd);
+    
+    if (mainWnd->getSettings()->GetCmdZMQState())
+    {
+		int rc;
+		rc = zmq_bind(z_socket, mainWnd->getSettings()->GetCmdZMQAddr().toStdString().c_str());
+		assert(rc==0);
+		while (!stop)
+		{
+			zmq_msg_t msg;
+			rc = zmq_msg_init(&msg);
+			assert(rc==0);
+			rc = zmq_msg_recv(&msg, z_socket, 0);
+			if (rc != -1)
+			{
+				JSEvent_Struct event;
+				memcpy(&event, zmq_msg_data(&msg), zmq_msg_size(&msg));
+				session->SendJSEvent(event);
+			}
+		}
+	}
 }
 
 void JSEventListener::terminate()

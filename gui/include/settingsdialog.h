@@ -33,8 +33,11 @@ class SettingsDialog : public QDialog
 		QListWidget *registered_hosts_list_widget;
 		QPushButton *delete_registered_host_button;
                 
-        QLineEdit *dispatch_server_addr_edit;
-        QCheckBox *dispatch_server_check_box;
+        QLineEdit *frame_zmq_addr_edit;
+        QCheckBox *frame_zmq_check_box;
+
+        QLineEdit *cmd_zmq_addr_edit;
+        QCheckBox *cmd_zmq_check_box;
 
 		void UpdateBitratePlaceholder();
 
@@ -56,9 +59,11 @@ class SettingsDialog : public QDialog
 		void RegisterNewHost();
 		void DeleteRegisteredHost();
         
-        void DispatchServerStateChanged();
-        void DispatchServerAddrChanged();
+        void FrameZMQStateChanged();
+        void FrameZMQAddrChanged();
         
+        void CmdZMQStateChanged();
+        void CmdZMQAddrChanged();
 
 	public:
 		SettingsDialog(Settings *settings, QWidget *parent = nullptr);

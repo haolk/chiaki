@@ -236,22 +236,37 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 	UpdateHardwareDecodeEngineComboBox();
 
     
-    // Dispatch Server Settings
+    // ZMQ Settings
     
-	auto dispatch_server_settings_group_box = new QGroupBox(tr("Dispatch Server Settings"));
-	left_layout->addWidget(dispatch_server_settings_group_box);
-    auto dispatch_server_layout = new QFormLayout(); // 
-	dispatch_server_settings_group_box->setLayout(dispatch_server_layout);
+	auto frame_zmq_settings_group_box = new QGroupBox(tr("Frame Server Settings"));
+	left_layout->addWidget(frame_zmq_settings_group_box);
+    auto frame_zmq_layout = new QFormLayout(); // 
+	frame_zmq_settings_group_box->setLayout(frame_zmq_layout);
 
-	dispatch_server_check_box = new QCheckBox(this); // TODO:: Memory leak? Will profile later.
-    dispatch_server_check_box->setCheckState(settings->GetDispatchServerState() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-    connect(dispatch_server_check_box, &QCheckBox::stateChanged, this, &SettingsDialog::DispatchServerStateChanged);
-	dispatch_server_layout->addRow(tr("Dispatch Server for Machine Learning Training"), dispatch_server_check_box);
+	frame_zmq_check_box = new QCheckBox(this); // TODO:: Memory leak? Will profile later.
+    frame_zmq_check_box->setCheckState(settings->GetFrameZMQState() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    connect(frame_zmq_check_box, &QCheckBox::stateChanged, this, &SettingsDialog::FrameZMQStateChanged);
+	frame_zmq_layout->addRow(tr("Send Frames via ZMQ"), frame_zmq_check_box);
     
-    dispatch_server_addr_edit = new QLineEdit(this);
-    dispatch_server_addr_edit->setText(settings->GetDispatchServerAddr());
-    dispatch_server_layout->addRow(tr("Dispatch Server Address"), dispatch_server_addr_edit);
-    connect(dispatch_server_addr_edit, &QLineEdit::textEdited, this, &SettingsDialog::DispatchServerAddrChanged);
+    frame_zmq_addr_edit = new QLineEdit(this);
+    frame_zmq_addr_edit->setText(settings->GetFrameZMQAddr());
+    frame_zmq_layout->addRow(tr("Frame ZMQ Address"), frame_zmq_addr_edit);
+    connect(frame_zmq_addr_edit, &QLineEdit::textEdited, this, &SettingsDialog::FrameZMQAddrChanged);
+
+	auto cmd_zmq_settings_group_box = new QGroupBox(tr("Command Server Settings"));
+	left_layout->addWidget(cmd_zmq_settings_group_box);
+    auto cmd_zmq_layout = new QFormLayout(); // 
+	cmd_zmq_settings_group_box->setLayout(cmd_zmq_layout);
+
+	cmd_zmq_check_box = new QCheckBox(this); // TODO:: Memory leak? Will profile later.
+    cmd_zmq_check_box->setCheckState(settings->GetCmdZMQState() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    connect(cmd_zmq_check_box, &QCheckBox::stateChanged, this, &SettingsDialog::CmdZMQStateChanged);
+	cmd_zmq_layout->addRow(tr("Receive Commands via ZMQ"), cmd_zmq_check_box);
+    
+    cmd_zmq_addr_edit = new QLineEdit(this);
+    cmd_zmq_addr_edit->setText(settings->GetCmdZMQAddr());
+    cmd_zmq_layout->addRow(tr("Command ZMQ Address"), cmd_zmq_addr_edit);
+    connect(cmd_zmq_addr_edit, &QLineEdit::textEdited, this, &SettingsDialog::CmdZMQAddrChanged);
     
 	// Registered Consoles
 
@@ -421,12 +436,22 @@ void SettingsDialog::DeleteRegisteredHost()
 	settings->RemoveRegisteredHost(mac);
 }
 
-void SettingsDialog::DispatchServerAddrChanged()
+void SettingsDialog::FrameZMQAddrChanged()
 {
-    settings->SetDispatchServerAddr(dispatch_server_addr_edit->text());
+    settings->SetFrameZMQAddr(frame_zmq_addr_edit->text());
 }
 
-void SettingsDialog::DispatchServerStateChanged()
+void SettingsDialog::FrameZMQStateChanged()
 {
-    settings->SetDispatchServerState(dispatch_server_check_box->checkState());
+    settings->SetFrameZMQState(frame_zmq_check_box->checkState());
+}
+
+void SettingsDialog::CmdZMQAddrChanged()
+{
+    settings->SetCmdZMQAddr(cmd_zmq_addr_edit->text());
+}
+
+void SettingsDialog::CmdZMQStateChanged()
+{
+    settings->SetCmdZMQState(cmd_zmq_check_box->checkState());
 }
