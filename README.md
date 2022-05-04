@@ -41,6 +41,7 @@ protoc and the protobuf Python library (only used during compilation for Nanopb)
 export Qt5_DIR=/opt/homebrew/opt/qt@5/lib/cmake/Qt5
 export MACOSX_DEPLOYMENT_TARGET=11
 export CPATH=/opt/homebrew/include
+export LIBRARY_PATH=/usr/local/lib
 git submodule update --init
 mkdir build && cd build
 cmake ..
