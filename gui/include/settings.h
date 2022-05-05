@@ -66,13 +66,13 @@ class Settings : public QObject
         bool GetFrameZMQState() const {return settings.value("settings/frame_zmq_on", true).toBool(); }
         void SetFrameZMQState(bool enabled)  { settings.setValue("settings/frame_zmq_on", enabled); }
         
-        QString GetFrameZMQAddr() const { return settings.value("settings/frame_zmq_addr", "tcp://localhost:5555").toString(); };
+        QString GetFrameZMQAddr() const { return settings.value("settings/frame_zmq_addr", "tcp://127.0.0.1:5555").toString(); };
         void SetFrameZMQAddr(QString addr) { settings.setValue("settings/frame_zmq_addr", addr); };
         
         bool GetCmdZMQState() const {return settings.value("settings/cmd_zmq_on", true).toBool(); }
         void SetCmdZMQState(bool enabled)  { settings.setValue("settings/cmd_zmq_on", enabled); }
         
-        QString GetCmdZMQAddr() const { return settings.value("settings/cmd_zmq_addr", "tcp://localhost:5556").toString(); };
+        QString GetCmdZMQAddr() const { return settings.value("settings/cmd_zmq_addr", "tcp://127.0.0.1:5554").toString(); };
         void SetCmdZMQAddr(QString addr) { settings.setValue("settings/cmd_zmq_addr", addr); };
 
 		ChiakiVideoResolutionPreset GetResolution() const;

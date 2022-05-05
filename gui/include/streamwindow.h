@@ -62,6 +62,7 @@ class StreamWindow: public QMainWindow
 		void Init();
 		void UpdateVideoTransform();
 
+		FrameListener *frameListener;
 		JSEventListener *jsEventListener;
 
 	protected:

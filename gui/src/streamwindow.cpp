@@ -13,6 +13,7 @@
 #include <mainwindow.h>
 #include <QApplication>
 #include "avopenglframeuploader.h"
+#include <sys/errno.h>
 
 FrameListener::FrameListener(StreamSession *s)
 {
@@ -68,7 +69,6 @@ void FrameListener::run()
 				assert(rc==0);
 				memcpy(zmq_msg_data(&msg), buf, buf_len);
 				rc = zmq_msg_send(&msg, z_socket, ZMQ_DONTWAIT);
-
 				delete[] buf;
 			}
 		}
@@ -89,7 +89,7 @@ JSEventListener::JSEventListener(StreamSession *s)
 	// TODO: Use POLL instead of PAIR
 	//
     z_context = zmq_ctx_new();    
-    z_socket = zmq_socket(z_context, ZMQ_PAIR);    
+    z_socket = zmq_socket(z_context, ZMQ_PULL);    
     session = s;
     stop = false;
 }
@@ -121,6 +121,7 @@ void JSEventListener::run()
 			{
 				JSEvent_Struct event;
 				memcpy(&event, zmq_msg_data(&msg), zmq_msg_size(&msg));
+
 				session->SendJSEvent(event);
 			}
 		}
@@ -165,7 +166,12 @@ StreamWindow::~StreamWindow()
     {
         jsEventListener->terminate();
         delete jsEventListener;
-    }    
+    } 
+	if (frameListener)
+	{
+		frameListener->terminate();
+		delete frameListener;
+	}
 	delete av_widget;
 }
 
@@ -201,6 +207,9 @@ void StreamWindow::Init()
     
     jsEventListener = new JSEventListener(session);
     jsEventListener->start();
+
+	frameListener = new FrameListener(session);
+	frameListener->start();
     
 	show();
 }

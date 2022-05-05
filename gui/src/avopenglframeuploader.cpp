@@ -98,11 +98,13 @@ void AVOpenGLFrameUploader::UpdateFrameFromDecoder()
 
     bool server_mode = false; // Chiaki server mode - no display in main window
     bool success = false;
+
     if (!server_mode)
         success = widget->GetBackgroundFrame()->Update(next_frame, decoder->log);
         
     SendFrame(next_frame); // Send frame to ZMQ Server	av_frame_free(&next_frame);
 
+    av_frame_free(&next_frame);
 	if(success)
 		widget->SwapFrames();
 }
