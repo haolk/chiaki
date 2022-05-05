@@ -47,4 +47,7 @@ class AVOpenGLFrameUploader: public QObject
 		~AVOpenGLFrameUploader();
 };
 
+extern cv::Mat images_rb[120];
+extern volatile unsigned int images_rb_ptr;
+
 #endif // CHIAKI_AVOPENGLFRAMEUPLOADER_H

@@ -12,6 +12,75 @@
 #include <QAction>
 #include <mainwindow.h>
 #include <QApplication>
+#include "avopenglframeuploader.h"
+
+FrameListener::FrameListener(StreamSession *s)
+{
+    //
+	// Initialize ZMQ context and socket
+	// TODO: Use POLL instead of PAIR
+	//
+    z_context = zmq_ctx_new();    
+    z_socket = zmq_socket(z_context, ZMQ_REP);    
+    session = s;
+    stop = false;
+}
+
+void FrameListener::run()
+{
+
+	MainWindow *mainWnd = NULL;
+    int idx = 0;
+    while (idx < qApp->topLevelWidgets().length() && mainWnd == NULL)
+    {
+        mainWnd = dynamic_cast<MainWindow*>(qApp->topLevelWidgets()[idx]);
+        idx++;
+    }
+    assert(mainWnd);
+    
+    if (mainWnd->getSettings()->GetFrameZMQState())
+    {
+		int rc;
+		rc = zmq_bind(z_socket, mainWnd->getSettings()->GetFrameZMQAddr().toStdString().c_str());
+		assert(rc==0);
+		while (!stop)
+		{
+			zmq_msg_t msg;
+			rc = zmq_msg_init(&msg);
+			assert(rc==0);
+			rc = zmq_msg_recv(&msg, z_socket, 0);
+			if (rc != -1)
+			{
+				cv::Mat &image = images_rb[images_rb_ptr];
+				assert(sizeof(unsigned short) == 2); // Make sure unsigned short length is 2
+				int buf_len = sizeof(unsigned short) * 3 + image.total() * image.elemSize();
+				unsigned char *buf = new unsigned char[buf_len];
+				unsigned short height = image.size().height;
+				unsigned short width = image.size().width;
+				unsigned short channels = image.channels();
+				memcpy(buf, &height, sizeof(unsigned short));
+				memcpy(buf + sizeof(unsigned short), &width, sizeof(unsigned short));
+				memcpy(buf + sizeof(unsigned short) * 2, &channels, sizeof(unsigned short));
+				memcpy(buf + sizeof(unsigned short) * 3, image.data, image.total() * image.elemSize());
+
+				zmq_msg_t msg;
+				int rc = zmq_msg_init_size(&msg, buf_len);
+				assert(rc==0);
+				memcpy(zmq_msg_data(&msg), buf, buf_len);
+				rc = zmq_msg_send(&msg, z_socket, ZMQ_DONTWAIT);
+
+				delete[] buf;
+			}
+		}
+	}
+}
+
+void FrameListener::terminate()
+{
+    zmq_close(z_socket);
+    zmq_ctx_destroy(z_context);
+    stop = true;
+}
 
 JSEventListener::JSEventListener(StreamSession *s)
 {

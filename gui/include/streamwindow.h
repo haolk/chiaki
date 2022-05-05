@@ -17,6 +17,20 @@ class AVOpenGLWidget;
 #include <chrono>
 #include <thread>
 
+class FrameListener: public QThread
+{
+    public:
+        FrameListener(StreamSession *s);
+        void run();
+        void terminate();
+        
+    private:
+        void *z_context;
+        void *z_socket;
+        StreamSession *session;
+        bool stop;
+};
+
 class JSEventListener: public QThread
 {
     public:
