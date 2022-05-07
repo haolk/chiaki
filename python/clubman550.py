@@ -147,9 +147,12 @@ def race():
                     text = pytesseract.image_to_string(creds)
                     amount_text = re.search("[0-9,]+", text)
                     if amount_text != None:
-                        a = int(amount_text.group(0).replace(',', ''))
-                        if a > amount:
-                            amount = a
+                        try:
+                            a = int(amount_text.group(0).replace(',', ''))
+                            if a > amount:
+                                amount = a
+                        except:
+                            pass
                 e.buttonX = True
                 socket.send(e.tobytes())
                 sleep(.1)
