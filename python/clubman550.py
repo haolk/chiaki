@@ -1,7 +1,7 @@
 import zmq
 from time import sleep, time
-from struct import *
-from PIL import Image
+from struct import pack
+import datetime
 import numpy
 import cv2
 import pytesseract
@@ -159,6 +159,7 @@ def race():
 
 while True:
 
+    print(datetime.datetime.now().strftime("%d/%m/%y %H:%M:%S"))
     print("start")
     pressX()
     sleep(1)
