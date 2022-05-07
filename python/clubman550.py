@@ -133,27 +133,7 @@ def race():
         fsocket.send_string('0')
         msg = fsocket.recv()
         if  len(msg) != 0:
-            height = int.from_bytes(msg[0:2], byteorder='little')
-            width = int.from_bytes(msg[2:4], byteorder='little')
-            channel = int.from_bytes(msg[4:6], byteorder='little')
-            i = Image.frombytes('RGB', (1280, 720), msg[6:])
-            j = i.crop((320, 620, 900, 650))
-            if ispurple(j):
-                    e.reset()
-                    socket.send(e.tobytes())
-                    break
-            e.buttonA = True
-            socket.send(e.tobytes())
-            sleep(.3)
-            e.buttonA = False
-            socket.send(e.tobytes())
-            sleep(1)
 
-def menu():
-    while True:
-        fsocket.send_string('0')
-        msg = fsocket.recv()
-        if  len(msg) != 0:
             height = int.from_bytes(msg[0:2], byteorder='little')
             width = int.from_bytes(msg[2:4], byteorder='little')
             channel = int.from_bytes(msg[4:6], byteorder='little')
@@ -174,8 +154,11 @@ def menu():
                 sleep(1)
                 return
             else:
-                print("menu press X")
-                pressX()
+                e.buttonA = True
+                socket.send(e.tobytes())
+                sleep(.3)
+                e.buttonA = False
+                socket.send(e.tobytes())
                 sleep(1)
 
 while True:
@@ -187,10 +170,6 @@ while True:
     print("started racing")
     race()
     print("finished racing")
-    print("start menu")
-    menu()
-    print("finished menu")
-
 
     
 
