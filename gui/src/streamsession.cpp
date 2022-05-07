@@ -329,10 +329,10 @@ void StreamSession::UpdateGamepads()
 void StreamSession::SendJSEvent(JSEvent_Struct event)
 {
     ChiakiControllerState state = {};
-    state.buttons |= event.buttonA ? CHIAKI_CONTROLLER_BUTTON_CROSS : 0;
-    state.buttons |= event.buttonB ? CHIAKI_CONTROLLER_BUTTON_MOON : 0;
-    state.buttons |= event.buttonX ? CHIAKI_CONTROLLER_BUTTON_BOX : 0;
-    state.buttons |= event.buttonY ? CHIAKI_CONTROLLER_BUTTON_PYRAMID : 0;
+    state.buttons |= event.buttonX ? CHIAKI_CONTROLLER_BUTTON_CROSS : 0;
+    state.buttons |= event.buttonO ? CHIAKI_CONTROLLER_BUTTON_MOON : 0;
+    state.buttons |= event.buttonS ? CHIAKI_CONTROLLER_BUTTON_BOX : 0;
+    state.buttons |= event.buttonT ? CHIAKI_CONTROLLER_BUTTON_PYRAMID : 0;
     state.buttons |= event.buttonLeft ? CHIAKI_CONTROLLER_BUTTON_DPAD_LEFT : 0;
     state.buttons |= event.buttonRight ? CHIAKI_CONTROLLER_BUTTON_DPAD_RIGHT : 0;
     state.buttons |= event.buttonUp ? CHIAKI_CONTROLLER_BUTTON_DPAD_UP : 0;

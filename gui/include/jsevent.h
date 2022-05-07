@@ -2,10 +2,10 @@
 #define _JSEVENT_H_
 
 struct JSEvent_Struct {
-  bool buttonA;
-  bool buttonB;
-  bool buttonX;
-  bool buttonY;
+  bool buttonX; // Cross
+  bool buttonO; // Circle
+  bool buttonS; // Square
+  bool buttonT; // Triangle
   bool buttonLeft;
   bool buttonRight;
   bool buttonUp;

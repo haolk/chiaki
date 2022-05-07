@@ -1,5 +1,5 @@
 import zmq
-from time import sleep
+from time import sleep, time
 from struct import *
 from PIL import Image
 import numpy
@@ -34,16 +34,16 @@ def ispurple(img):
 
 
 class JSEvent:
-    def __init__(self, buttonA=False, buttonB=False, buttonX=False, buttonY=False,
+    def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
                        buttonLeft=False, buttonRight=False, buttonUp=False, buttonDown=False,
                        buttonL1=False, buttonR1=False, buttonL3=False, buttonR3=False,
                        buttonStart=False, buttonSelect=False, buttonGuide=False, #_dummy,
                        buttonL2=False, buttonR2=False,
                        axisLeftX=0, axisLeftY=0, axisRightX=0, axisRightY=0):
-        self.buttonA = buttonA # Cross
-        self.buttonB = buttonB # Circle
-        self.buttonX = buttonX # Square
-        self.buttonY = buttonY
+        self.buttonX = buttonX # Cross
+        self.buttonO = buttonO # Circle
+        self.buttonS = buttonS # Square
+        self.buttonT = buttonT
         self.buttonLeft = buttonLeft
         self.buttonRight = buttonRight
         self.buttonUp = buttonUp
@@ -64,7 +64,7 @@ class JSEvent:
         self.axisRightY = axisRightY
 
     def tobytes(self):
-        return pack('??????????????????hhhh', self.buttonA, self.buttonB, self.buttonX, self.buttonY,
+        return pack('??????????????????hhhh', self.buttonX, self.buttonO, self.buttonS, self.buttonT,
                                                 self.buttonLeft, self.buttonRight, self.buttonUp, self.buttonDown,
                                                 self.buttonL1, self.buttonR1, self.buttonL3, self.buttonR3,
                                                 self.buttonStart, self.buttonSelect, self.buttonGuide, self._dummy,
@@ -88,7 +88,7 @@ fsocket.connect("tcp://localhost:5555")
 
 def pressX():
     e = JSEvent()
-    e.buttonA = True
+    e.buttonX = True
     socket.send(e.tobytes())
     sleep(.3)
     e.reset()
@@ -115,7 +115,7 @@ def pressRight():
 
 def pressBack():
     e = JSEvent()
-    e.buttonB = True
+    e.buttonO = True
     socket.send(e.tobytes())
     sleep(.3)
     e.reset()
@@ -124,6 +124,7 @@ def pressBack():
 
 def race():
     
+    start = time()
     e = JSEvent()
     e.buttonUp = True
     e.buttonDown = True
@@ -152,12 +153,15 @@ def race():
                 sleep(1)
                 pressX()
                 sleep(1)
+                end = time()
+                elapsed = end - start
+                print("time taken: %d'%d\"" % ((elapsed / 60), (elapsed % 60)))
                 return
             else:
-                e.buttonA = True
+                e.buttonX = True
                 socket.send(e.tobytes())
                 sleep(.3)
-                e.buttonA = False
+                e.buttonX = False
                 socket.send(e.tobytes())
                 sleep(1)
 
@@ -170,9 +174,3 @@ while True:
     print("started racing")
     race()
     print("finished racing")
-
-    
-
-
-            
-
