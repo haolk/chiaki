@@ -7,32 +7,6 @@ import cv2
 import pytesseract
 import re
 
-def hsl(rgb):
-    red = rgb[0]/255
-    green = rgb[1]/255
-    blue = rgb[2]/255
-    xmin = min(min(red, green), blue)
-    xmax = max(max(red, green), blue)
-    if (xmin == xmax):
-        return (0, 0, 0)
-    if (xmax == red):
-        hue = (green - blue) / (xmax - xmin)
-    elif (xmax == green):
-        hue = 2.0 + (blue - red) / (xmax - xmin)
-    else:
-        hue = 4.0 + (red - green) / (xmax - xmin)
-    hue = hue * 60
-    if (hue < 0):
-        hue = hue + 360
-    light = (xmax + xmin)/2
-    saturation = (xmax - xmin)/(1-abs(2*light-1))
-    return (hue, light, saturation)
-
-def ispurple(img):
-    c = hsl(numpy.average(img, axis=(0,1)))
-    return (c[0] > 260 and c[0] < 315) and (c[2] > 0.4) and (c[1] > 0.1)
-
-
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
                        buttonLeft=False, buttonRight=False, buttonUp=False, buttonDown=False,
@@ -90,37 +64,39 @@ def pressX():
     e = JSEvent()
     e.buttonX = True
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
     e.reset()
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
 
 def pressLeft():
     e = JSEvent()
     e.buttonLeft = True
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
     e.reset()
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
 
 def pressRight():
     e = JSEvent()
     e.buttonRight = True
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
     e.reset()
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
 
 def pressBack():
     e = JSEvent()
     e.buttonO = True
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
     e.reset()
     socket.send(e.tobytes())
-    sleep(.3)
+    sleep(.1)
+
+amount = 0
 
 def race():
     
@@ -145,25 +121,41 @@ def race():
             text = pytesseract.image_to_string(ocv).lower()
             if re.search('retry', text):
                 print("menu found retry")
+                print("press back")
                 pressBack()
-                sleep(1)
+                sleep(0.1)
+                print("press back")
                 pressBack()
-                sleep(1)
+                sleep(0.1)
+                print("press left")
                 pressLeft()
-                sleep(1)
+                sleep(0.1)
+                print("press X")
                 pressX()
                 sleep(1)
                 end = time()
                 elapsed = end - start
                 print("time taken: %d'%d\"" % ((elapsed / 60), (elapsed % 60)))
+                print("credits: %d" % amount)
                 return
             else:
+                ocv = numpy.array(i)
+                rewards = ocv[310:370, 100:400]
+                text = pytesseract.image_to_string(rewards)
+                if re.search('REWARDS', text):
+                    creds = ocv[280:320, 920:1180]
+                    text = pytesseract.image_to_string(creds)
+                    amount_text = re.search("[0-9,]+", text)
+                    if amount_text != None:
+                        a = int(amount_text.group(0).replace(',', ''))
+                        if a > amount:
+                            amount = a
                 e.buttonX = True
                 socket.send(e.tobytes())
-                sleep(.3)
+                sleep(.1)
                 e.buttonX = False
                 socket.send(e.tobytes())
-                sleep(1)
+                sleep(0.3)
 
 while True:
 
