@@ -99,7 +99,7 @@ def pressBack():
 amount = 0
 
 def race():
-    
+    global amount
     start = time()
     e = JSEvent()
     e.buttonUp = True
@@ -114,10 +114,11 @@ def race():
             height = int.from_bytes(msg[0:2], byteorder='little')
             width = int.from_bytes(msg[2:4], byteorder='little')
             channel = int.from_bytes(msg[4:6], byteorder='little')
-            i = Image.frombytes('RGB', (1280, 720), msg[6:])
-            j = i.crop((320, 650, 900, 670))
-            ocv = numpy.array(j)
-            ocv = ocv[:, :, ::-1].copy()
+            img = numpy.frombuffer(msg, numpy.uint8, -1, 6)
+            img.shape = (height, width, channel)
+            img = img[:, :, ::-1].copy()
+
+            ocv = img[655:675, 620:680]
             text = pytesseract.image_to_string(ocv).lower()
             if re.search('retry', text):
                 print("menu found retry")
@@ -139,11 +140,10 @@ def race():
                 print("credits: %d" % amount)
                 return
             else:
-                ocv = numpy.array(i)
-                rewards = ocv[310:370, 100:400]
+                rewards = img[310:370, 100:400]
                 text = pytesseract.image_to_string(rewards)
                 if re.search('REWARDS', text):
-                    creds = ocv[280:320, 920:1180]
+                    creds = img[280:320, 920:1180]
                     text = pytesseract.image_to_string(creds)
                     amount_text = re.search("[0-9,]+", text)
                     if amount_text != None:
