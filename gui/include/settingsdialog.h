@@ -32,7 +32,10 @@ class SettingsDialog : public QDialog
 
 		QListWidget *registered_hosts_list_widget;
 		QPushButton *delete_registered_host_button;
-                
+
+		QLineEdit *zmq_addr_edit;
+        QCheckBox *zmq_check_box;
+	
         QLineEdit *frame_zmq_addr_edit;
         QCheckBox *frame_zmq_check_box;
 
@@ -58,6 +61,9 @@ class SettingsDialog : public QDialog
 		void UpdateRegisteredHostsButtons();
 		void RegisterNewHost();
 		void DeleteRegisteredHost();
+
+		void ZMQStateChanged();
+        void ZMQAddrChanged();
         
         void FrameZMQStateChanged();
         void FrameZMQAddrChanged();

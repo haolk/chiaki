@@ -237,6 +237,21 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
 
     
     // ZMQ Settings
+
+	auto zmq_settings_group_box = new QGroupBox(tr("ZMQ Server Settings"));
+	left_layout->addWidget(zmq_settings_group_box);
+    auto zmq_layout = new QFormLayout();
+	zmq_settings_group_box->setLayout(zmq_layout);
+
+	zmq_check_box = new QCheckBox(this); // TODO:: Memory leak? Will profile later.
+    zmq_check_box->setCheckState(settings->GetZMQState() ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
+    connect(zmq_check_box, &QCheckBox::stateChanged, this, &SettingsDialog::ZMQStateChanged);
+	zmq_layout->addRow(tr("Enable ZMQ Server"), zmq_check_box);
+    
+    zmq_addr_edit = new QLineEdit(this);
+    zmq_addr_edit->setText(settings->GetZMQAddr());
+    zmq_layout->addRow(tr("ZMQ Address"), zmq_addr_edit);
+    connect(zmq_addr_edit, &QLineEdit::textEdited, this, &SettingsDialog::ZMQAddrChanged);
     
 	auto frame_zmq_settings_group_box = new QGroupBox(tr("Frame Server Settings"));
 	left_layout->addWidget(frame_zmq_settings_group_box);
@@ -434,6 +449,16 @@ void SettingsDialog::DeleteRegisteredHost()
 		return;
 
 	settings->RemoveRegisteredHost(mac);
+}
+
+void SettingsDialog::ZMQAddrChanged()
+{
+    settings->SetZMQAddr(zmq_addr_edit->text());
+}
+
+void SettingsDialog::ZMQStateChanged()
+{
+    settings->SetZMQState(zmq_check_box->checkState());
 }
 
 void SettingsDialog::FrameZMQAddrChanged()

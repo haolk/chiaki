@@ -45,6 +45,21 @@ class JSEventListener: public QThread
         bool stop;
 };
 
+class ZMQListener : public QThread
+{
+public:
+        ZMQListener(StreamSession *s);
+        void run();
+        void terminate();
+        
+    private:
+        void *z_context;
+        void *z_socket;
+        StreamSession *session;
+        bool stop;
+
+};
+
 class StreamWindow: public QMainWindow
 {
 	Q_OBJECT
@@ -62,6 +77,7 @@ class StreamWindow: public QMainWindow
 		void Init();
 		void UpdateVideoTransform();
 
+		ZMQListener *zmqListener;
 		FrameListener *frameListener;
 		JSEventListener *jsEventListener;
 

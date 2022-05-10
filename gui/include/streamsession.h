@@ -129,7 +129,8 @@ class StreamSession : public QObject
 		void HandleKeyboardEvent(QKeyEvent *event);
 		void HandleMouseEvent(QMouseEvent *event);
 
-        
+        void SendControllerState(ChiakiControllerState state);
+		ChiakiControllerState GetControllerState();
         void SendJSEvent(JSEvent_Struct event);
         
 	signals:

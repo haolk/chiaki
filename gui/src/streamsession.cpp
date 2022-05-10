@@ -326,6 +326,18 @@ void StreamSession::UpdateGamepads()
 #endif
 }
 
+void StreamSession::SendControllerState(ChiakiControllerState state)
+{
+	chiaki_controller_state_or(&state, &state, &keyboard_state);
+	chiaki_session_set_controller_state(&session, &state);
+}
+
+ChiakiControllerState StreamSession::GetControllerState() {
+	ChiakiControllerState state = {};
+	chiaki_session_get_controller_state(&session, &state);
+	return state;
+}
+
 void StreamSession::SendJSEvent(JSEvent_Struct event)
 {
     ChiakiControllerState state = {};
@@ -353,7 +365,6 @@ void StreamSession::SendJSEvent(JSEvent_Struct event)
 
     chiaki_controller_state_or(&state, &state, &keyboard_state);
 	chiaki_session_set_controller_state(&session, &state);
-    
 }
 
 void StreamSession::SendFeedbackState()

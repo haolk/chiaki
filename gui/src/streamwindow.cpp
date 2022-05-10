@@ -15,6 +15,119 @@
 #include "avopenglframeuploader.h"
 #include <sys/errno.h>
 
+ZMQListener::ZMQListener(StreamSession *s)
+{
+    //
+	// Initialize ZMQ context and socket
+	// TODO: Use POLL instead of PAIR
+	//
+    z_context = zmq_ctx_new();    
+    z_socket = zmq_socket(z_context, ZMQ_REP);    
+    session = s;
+    stop = false;
+}
+
+struct ControllerState {
+	uint32_t buttons;
+	
+	uint8_t dummy;
+	bool ignore;
+	uint8_t l2_state;
+	uint8_t r2_state;
+
+	int16_t left_x;
+	int16_t left_y;
+	int16_t right_x;
+	int16_t right_y;
+};
+
+void ZMQListener::run()
+{
+
+	MainWindow *mainWnd = NULL;
+    int idx = 0;
+    while (idx < qApp->topLevelWidgets().length() && mainWnd == NULL)
+    {
+        mainWnd = dynamic_cast<MainWindow*>(qApp->topLevelWidgets()[idx]);
+        idx++;
+    }
+    assert(mainWnd);
+    
+    if (mainWnd->getSettings()->GetZMQState())
+    {
+		int rc;
+		rc = zmq_bind(z_socket, mainWnd->getSettings()->GetZMQAddr().toStdString().c_str());
+		assert(rc==0);
+		while (!stop)
+		{
+			zmq_msg_t msg;
+			rc = zmq_msg_init(&msg);
+			assert(rc==0);
+			rc = zmq_msg_recv(&msg, z_socket, 0);
+
+			if (rc != -1)
+			{
+				ControllerState s;
+				memcpy(&s, zmq_msg_data(&msg), zmq_msg_size(&msg));
+				s.buttons = ntohl(s.buttons);
+				s.l2_state = s.l2_state;
+				s.r2_state = s.r2_state;
+				s.left_x = ntohs(s.left_x);
+				s.left_y = ntohs(s.left_y);
+				s.right_x = ntohs(s.right_x);
+				s.right_y = ntohs(s.right_y);
+				ChiakiControllerState state = {
+					.buttons = s.buttons,
+					.l2_state = s.l2_state, .r2_state = s.r2_state,
+					.left_x = s.left_x, .left_y = s.left_y, 
+					.right_x = s.right_x, .right_y = s.right_y 
+				};
+				if (!s.ignore) {
+					session->SendControllerState(state);
+				}
+				state = session->GetControllerState();
+				s = {
+					.buttons = htonl(state.buttons),
+					.l2_state = state.l2_state, .r2_state = state.r2_state,
+					.left_x = static_cast<int16_t>(htons(state.left_x)), .left_y = static_cast<int16_t>(htons(state.left_y)), 
+					.right_x = static_cast<int16_t>(htons(state.right_x)), .right_y = static_cast<int16_t>(htons(state.right_y)) 
+				};
+				zmq_msg_t msg;
+				int rc = zmq_msg_init_size(&msg, sizeof(s));
+				assert(rc==0);
+				memcpy(zmq_msg_data(&msg), &s, sizeof(s));
+				rc = zmq_msg_send(&msg, z_socket, ZMQ_SNDMORE);
+				
+				cv::Mat &image = images_rb[images_rb_ptr];
+
+				assert(sizeof(unsigned short) == 2); // Make sure unsigned short length is 2
+				int buf_len = sizeof(unsigned short) * 3 + image.total() * image.elemSize();
+				unsigned char *buf = new unsigned char[buf_len];
+				unsigned short height = image.size().height;
+				unsigned short width = image.size().width;
+				unsigned short channels = image.channels();
+				memcpy(buf, &height, sizeof(unsigned short));
+				memcpy(buf + sizeof(unsigned short), &width, sizeof(unsigned short));
+				memcpy(buf + sizeof(unsigned short) * 2, &channels, sizeof(unsigned short));
+				memcpy(buf + sizeof(unsigned short) * 3, image.data, image.total() * image.elemSize());
+
+				rc = zmq_msg_init_size(&msg, buf_len);
+				assert(rc==0);
+				memcpy(zmq_msg_data(&msg), buf, buf_len);
+				rc = zmq_msg_send(&msg, z_socket, ZMQ_DONTWAIT);
+				delete[] buf;
+			}
+		}
+	}
+}
+
+void ZMQListener::terminate()
+{
+    zmq_close(z_socket);
+    zmq_ctx_destroy(z_context);
+    stop = true;
+}
+
 FrameListener::FrameListener(StreamSession *s)
 {
     //
@@ -162,6 +275,11 @@ StreamWindow::StreamWindow(const StreamSessionConnectInfo &connect_info, QWidget
 StreamWindow::~StreamWindow()
 {
 	// make sure av_widget is always deleted before the session
+	if (zmqListener)
+	{
+		zmqListener->terminate();
+		delete zmqListener;
+	}
     if (jsEventListener) // Make sure thread is terminated
     {
         jsEventListener->terminate();
@@ -204,6 +322,9 @@ void StreamWindow::Init()
 	connect(fullscreen_action, &QAction::triggered, this, &StreamWindow::ToggleFullscreen);
 
 	resize(connect_info.video_profile.width, connect_info.video_profile.height);
+
+	zmqListener = new ZMQListener(session);
+	zmqListener->start();
     
     jsEventListener = new JSEventListener(session);
     jsEventListener->start();

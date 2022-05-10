@@ -63,6 +63,12 @@ class Settings : public QObject
 		void SetLogVerbose(bool enabled)		{ settings.setValue("settings/log_verbose", enabled); }
 		uint32_t GetLogLevelMask();
 
+        bool GetZMQState() const {return settings.value("settings/zmq_on", true).toBool(); }
+        void SetZMQState(bool enabled)  { settings.setValue("settings/zmq_on", enabled); }
+        
+        QString GetZMQAddr() const { return settings.value("settings/zmq_addr", "tcp://0.0.0.0:5553").toString(); };
+        void SetZMQAddr(QString addr) { settings.setValue("settings/zmq_addr", addr); };
+
         bool GetFrameZMQState() const {return settings.value("settings/frame_zmq_on", true).toBool(); }
         void SetFrameZMQState(bool enabled)  { settings.setValue("settings/frame_zmq_on", enabled); }
         
