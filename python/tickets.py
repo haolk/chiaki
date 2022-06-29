@@ -7,8 +7,22 @@ import cv2
 import pytesseract
 import re
 
-delayTime = 1
+delayTime = 0.6
 pressTime = 0.2
+
+msg = open('gift.cv', 'rb').read()
+height = int.from_bytes(msg[0:2], byteorder='little')
+width = int.from_bytes(msg[2:4], byteorder='little')
+channel = int.from_bytes(msg[4:6], byteorder='little')
+img = numpy.frombuffer(msg, numpy.uint8, -1, 6)
+img.shape = (height, width, channel)
+img = img[:, :, ::-1].copy()
+img = img[20:80, 80:140]
+
+def diffimg(dst):
+    error2 = cv2.norm(img, dst, cv2.NORM_L2)
+    similarity = 1- error2 / (60 * 60)
+    return similarity
 
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
@@ -137,6 +151,11 @@ def pressXrepeatedly(duration):
     start = time()
     while (time() < start+duration):
         pressX()
+        i = getimage()
+        i = i[20:80, 80:140]
+        s = diffimg(i)
+        if s >= 0.8:
+            return
 
 def maintoextra():
     print("start")
@@ -176,7 +195,9 @@ def menutoclaim():
     print("yes")
     pressX()
     print("repeating X")
-    pressXrepeatedly(20)
+    pressXrepeatedly(60)
+    print("exiting")
+    sleep(1)
     pressBack()
     pressBack()
     sleep(3)
@@ -202,6 +223,4 @@ def runloop3():
 
 while True:
     runloop1()
-    sleep(3)
     runloop3()
-    sleep(3)
