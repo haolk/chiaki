@@ -138,7 +138,8 @@ def loadimg(name):
         if m is not None:
             images[m[1]] = {
                 'img': img,
-                'xy': (int(m[2]), int(m[3]), int(m[4]), int(m[5]))
+                'xy': (int(m[2]), int(m[3]), int(m[4]), int(m[5])),
+                'cimg': img[int(m[2]):int(m[3]), int(m[4]):int(m[5])]
             }
         return img
 
@@ -146,6 +147,7 @@ garageimg = loadimg("garage-74-116-17-130.cv")
 mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
 giftsimg = loadimg("gifts-23-73-29-139.cv")
 cafeimg = loadimg("cafe-574-626-905-961.cv")
+cafealtimg = loadimg("cafealt-561-606-531-557.cv")
 nogiftsimg = loadimg("nogifts-341-410-583-675.cv")
 toyota86preimg = loadimg("toyota86pre-531-587-548-728.cv")
 rotarypreimg = loadimg("rotarypre-537-591-526-754.cv")
@@ -173,6 +175,8 @@ def repeatX(name, duration):
             print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
     print("\033[A\033[0Kfail to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    with open('reject.cv', 'wb') as file:
+        file.write(msg)
     return False
 
 def repeatBack(name, duration):
@@ -195,6 +199,8 @@ def repeatBack(name, duration):
             print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
     print("\033[A\033[0Kfailed to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    with open('reject.cv', 'wb') as file:
+        file.write(msg)
     return False
 
 def cmpimg(name):
@@ -214,24 +220,28 @@ def cmpimg(name):
 
 def waitfor(name, duration):
     global images
-    i = images[name]
-    if i == None:
+    if (type(name) is str):
+        name = [name]
+    im = [images[x] for x in name]
+    if None in im:
         print("waitfor %s not found" % name)
         return False
-    src = i['img']
-    (sx, ex, sy, ey) = i['xy']
-    simg = src[sx:ex, sy:ey]
     print("waiting for %s for %d seconds" % (name, duration))
     start = time()
     while (time() < start+duration):
         print("\033[A\033[0Kwaiting for %s for %d seconds: %.2f" % (name, duration, time() - start))
         i = fetchimg()
-        img = i[sx:ex, sy:ey]
-        s = diffimg(simg, img)
-        if (s > comparison):
-            print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
-            return True
+        for x in im:
+            simg = x['cimg']
+            (sx, ex, sy, ey) = x['xy']
+            img = i[sx:ex, sy:ey]
+            s = diffimg(simg, img)
+            if (s > comparison):
+                print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+                return True
     print("\033[A\033[0Kfailed to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    with open('reject.cv', 'wb') as file:
+        file.write(msg)
     return False
 
 def waitfornot(name, duration):
@@ -254,6 +264,8 @@ def waitfornot(name, duration):
             print("\033[A\033[0Knot found %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
     print("\033[A\033[0Kfailed to not find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    with open('reject.cv', 'wb') as file:
+        file.write(msg)
     return False
 
 def maintoextra():
@@ -264,7 +276,7 @@ def maintoextra():
         return False
     pressLeft()
     pressX()
-    if waitfor('cafe', 10) == False:
+    if waitfor(['cafe', 'cafealt'], 10) == False:
         return False
     sleep(0.1)
     pressLeft()
@@ -360,7 +372,7 @@ def restartGame():
     print("start game")
     sleep(7)
     print("repeatedly quit intro")
-    repeatBack('title', 20)
+    repeatBack('title', 30)
     print("intro closed")
     sleep(2)
     pressX()

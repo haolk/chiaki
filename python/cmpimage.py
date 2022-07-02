@@ -2,6 +2,7 @@ import zmq
 import numpy
 import cv2
 from time import sleep, time
+import re
 
 fcontext = zmq.Context()
 fsocket = fcontext.socket(zmq.REQ)
@@ -47,54 +48,47 @@ def waitfornotimg(src, sx, ex, sy, ey, duration):
             return True
     return False
 
+images = {}
+
 def loadimg(name):
+    global images
     with open(name, 'rb') as file:
         msg = file.read()
-        return msgtoimg(msg)
+        img = msgtoimg(msg)
+        m = re.match('([^-]+)-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)\\.cv', name)
+        if m is not None:
+            images[m[1]] = {
+                'img': img,
+                'xy': (int(m[2]), int(m[3]), int(m[4]), int(m[5])),
+                'cimg': img[int(m[2]):int(m[3]), int(m[4]):int(m[5])]
+            }
+        return img
+
+def diffname(name, img):
+    global images
+    i = images[name]
+    if i == None:
+        print("repeat X %s not found" % name)
+        return False
+    src = i['img']
+    (sx, ex, sy, ey) = i['xy']
+    simg = src[sx:ex, sy:ey]
+    dimg = img[sx:ex, sy:ey]
+    return diffimg(simg, dimg)
 
 garageimg = loadimg("garage-74-116-17-130.cv")
 mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
 giftsimg = loadimg("gifts-23-73-29-139.cv")
-cafeimg = loadimg("cafe-574-626-905-961.cv")
 nogiftsimg = loadimg("nogifts-341-410-583-675.cv")
 rotaryimg = loadimg("rotary-294-426-419-894.cv")
 toyota86img = loadimg("./toyota86-300-424-453-837.cv")
-img = loadimg("img.cv")
-print(diffimg(img[340:424, 453:837], toyota86img[340:424, 453:837]))
-print(diffimg(toyota86img, img))
-cv2.imshow("1", toyota86img)
+cafeimg = loadimg("cafe-574-626-905-961.cv")
+cafealtimg = loadimg("cafealt-561-606-531-557.cv")
+img = loadimg("reject.cv")
+print(diffname("cafealt", img))
+cv2.imshow("1", cafealtimg)
 cv2.imshow("2", img)
-cv2.imshow("3", toyota86img[340:424, 453:837])
-cv2.imshow("4", img[340:424, 453:837])
+cv2.imshow("3", images['cafealt']['cimg'])
+
 
 cv2.waitKey(0)
-
-def X():
-    print("waiting for main menu")
-    print(waitforimg(mainmenuimg, 74, 121, 1162, 1259, 60))
-    print("waiting for not main menu")
-    print(waitfornotimg(mainmenuimg, 74, 121, 1162, 1259, 60))
-    print("waiting for cafe")
-    print(waitforimg(cafeimg, 562, 625, 584, 688, 60))
-    print("waiting for not cafe")
-    print(waitfornotimg(cafeimg, 562, 625, 584, 688, 60))
-    print("waiting for main menu")
-    print(waitforimg(mainmenuimg, 74, 121, 1162, 1259, 60))
-    print("waiting for not main menu")
-    print(waitfornotimg(mainmenuimg, 74, 121, 1162, 1259, 60))
-    print("waiting for garage")
-    print(waitforimg(garageimg, 74, 116, 17, 130, 60))
-    print("waiting for not garage")
-    print(waitfornotimg(garageimg, 74, 116, 17, 130, 60))
-    print("waiting for gifts 1")
-    print(waitforimg(giftsimg, 23, 73, 29, 139, 60))
-    print("waiting for not gifts 1")
-    print(waitfornotimg(giftsimg, 23, 73, 29, 139, 60))
-    print("waiting for gifts 2")
-    print(waitforimg(giftsimg, 23, 73, 29, 139, 60))
-    print("waiting for not gifts 2")
-    print(waitfornotimg(giftsimg, 23, 73, 29, 139, 60))
-    print("waiting for garage")
-    print(waitforimg(garageimg, 74, 116, 17, 130, 60))
-    print("waiting for not garage")
-    print(waitfornotimg(garageimg, 74, 116, 17, 130, 60))
