@@ -8,7 +8,7 @@ import pytesseract
 import re
 
 delayTime = 0.3 # 0.5 0.3
-pressTime = 0.03 # 0.2 0.15
+pressTime = 0.05 # 0.2 0.15
 
 tickets = 0
 restarts = 0
@@ -148,6 +148,7 @@ mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
 giftsimg = loadimg("gifts-23-73-29-139.cv")
 cafeimg = loadimg("cafe-574-626-905-961.cv")
 cafealtimg = loadimg("cafealt-561-606-531-557.cv")
+cafealt2img = loadimg("cafealt2-562-613-397-424.cv")
 nogiftsimg = loadimg("nogifts-341-410-583-675.cv")
 toyota86preimg = loadimg("toyota86pre-531-587-548-728.cv")
 rotarypreimg = loadimg("rotarypre-537-591-526-754.cv")
@@ -188,7 +189,6 @@ def repeatBack(name, duration):
     src = i['img']
     (sx, ex, sy, ey) = i['xy']
     simg = src[sx:ex, sy:ey]
-    print("repeat Back for %s for %d seconds" % (name, duration))
     start = time()
     print("repeat Back in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
@@ -274,11 +274,12 @@ def maintoextra():
     print("start: %d tickets (%d restarts)" % (tickets, restarts))
     if waitfor('mainmenu', 10) == False:
         return False
+    sleep(0.2)
     pressLeft()
     pressX()
-    if waitfor(['cafe', 'cafealt'], 10) == False:
+    if waitfor(['cafe', 'cafealt', 'cafealt2'], 10) == False:
         return False
-    sleep(0.1)
+    sleep(0.2)
     pressLeft()
     pressX()
     print("my collections")
@@ -286,10 +287,11 @@ def maintoextra():
     pressRight()
     pressX()
     print("\033[A\033[0Kmy collections - extra menus\033[A")
+    sleep(0.2)
     return True
 
 def menutoclaim():
-    sleep(0.3)
+    sleep(0.5)
     pressBack()
     pressBack()
     pressBack()
@@ -300,7 +302,7 @@ def menutoclaim():
     pressX()
     if waitfor('garage', 10) == False:
         return False
-    sleep(0.3)
+    sleep(0.5)
     pressRight()
     pressRight()
     pressRight()
@@ -315,11 +317,12 @@ def menutoclaim():
     if cmpimg('nogifts') > 0.75:
         return False
     pressX()
-    if repeatX('gifts', 60) == False:
+    if repeatX('gifts', 35) == False:
         return False
     sleep(0.5)
     pressBack()
-    if waitfornot('gifts', 10) == False:
+    sleep(0.2)
+    if waitfornot('gifts', 20) == False:
         return False
     pressBack()
     return True
@@ -333,7 +336,7 @@ def runloop1():
     if waitfor('toyota86pre', 10) == False:
         return False
     pressX()
-    if waitfor('toyota86', 2) == False:
+    if waitfor('toyota86', 4) == False:
         return False
     return menutoclaim()
 
@@ -348,7 +351,7 @@ def runloop3():
     if waitfor('rotarypre', 10) == False:
         return False
     pressX()
-    if waitfor('rotary', 2) == False:
+    if waitfor('rotary', 4) == False:
         return False
     return menutoclaim()
 
@@ -358,23 +361,22 @@ def restartGame():
     restarts += 1
     print("*** Restarting Game***")
     pressGuide()
-    sleep(2)
+    sleep(3)
     pressDown()
     pressX()
-    sleep(2)
+    sleep(3)
     print("opening options")
     pressStart()
-    sleep(2)
+    sleep(3)
     pressX()
     print("closed game")
     sleep(7)
     pressX()
     print("start game")
-    sleep(7)
-    print("repeatedly quit intro")
+    sleep(10)
     repeatBack('title', 30)
     print("intro closed")
-    sleep(2)
+    sleep(7)
     pressX()
     sleep(2)
     pressRight()
