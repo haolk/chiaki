@@ -17,9 +17,9 @@ if  len(msg) != 0:
     img = numpy.frombuffer(msg, numpy.uint8, -1, 6)
     img.shape = (height, width, channel)
     img = img[:, :, ::-1].copy()
-    img = img[655:675, 620:680]
+    img = img[655:740, 480:800]
     text = pytesseract.image_to_string(img).lower()
-    if re.search('retry', text):
+    if re.search('to next race', text):
         print("found")
     cv2.imshow('img', img)
     cv2.waitKey(0)

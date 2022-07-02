@@ -31,10 +31,10 @@ with open('img.cv', 'rb') as file:
     img = numpy.frombuffer(msg, numpy.uint8, -1, 6)
     img.shape = (height, width, channel)
     img = img[:, :, ::-1].copy()
-    img = img[680:775, 630:680]
+    img = img[20:80, 80:140]
     text = pytesseract.image_to_string(img).lower()
     print(text)
-    if re.search('next', text):
+    if re.search('gift', text):
         print("found")
     cv2.imshow('img', img)
     cv2.waitKey(0)

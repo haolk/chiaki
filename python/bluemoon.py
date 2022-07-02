@@ -130,8 +130,10 @@ def race():
     socket.send(e.tobytes())
 
     while True:
-        img = getimage()[655:775, 630:680]
+        img = getimage()[678:775, 630:680]
         text = pytesseract.image_to_string(img).lower()
+        img = getimage()[680:775, 630:680]
+        text += pytesseract.image_to_string(img).lower()
         if re.search('next', text):
             print("race finished (next) found")
             print("press next")
@@ -139,14 +141,14 @@ def race():
             while True:
                 img = getimage()
                 rewards = pytesseract.image_to_string(img[275:375, 100:400]).lower()
-                nextrace = pytesseract.image_to_string(img[655:680, 680:780]).lower()
+                nextrace = pytesseract.image_to_string(img[655:740, 480:800]).lower()
                 if re.search('rewards', rewards):
                     text = pytesseract.image_to_string(img[280:320, 920:1180])
                     amount_text = re.search("[0-9,]+", text)
                     if amount_text != None:
                         try:
                             a = int(amount_text.group(0).replace(',', ''))
-                            if a > amount:
+                            if a > amount and ((amount == 0) or ((a - amount) < 200000)):
                                 amount = a
                         except:
                             pass
