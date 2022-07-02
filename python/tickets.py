@@ -7,8 +7,8 @@ import cv2
 import pytesseract
 import re
 
-delayTime = 0.6
-pressTime = 0.2
+delayTime = 0.3 # 0.5 0.3
+pressTime = 0.05 # 0.2 0.15
 
 msg = open('gift.cv', 'rb').read()
 height = int.from_bytes(msg[0:2], byteorder='little')
@@ -23,6 +23,8 @@ def diffimg(dst):
     error2 = cv2.norm(img, dst, cv2.NORM_L2)
     similarity = 1- error2 / (60 * 60)
     return similarity
+
+tickets = 0
 
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
@@ -77,59 +79,39 @@ fcontext = zmq.Context()
 fsocket = fcontext.socket(zmq.REQ)
 fsocket.connect("tcp://localhost:5555")
 
-def pressX():
-    e = JSEvent()
-    e.buttonX = True
+def pressButton(e):
     socket.send(e.tobytes())
     sleep(pressTime)
     e.reset()
     socket.send(e.tobytes())
     sleep(delayTime)
+
+def pressX():
+    pressButton(JSEvent(buttonX = True))
 
 def pressLeft():
-    e = JSEvent()
-    e.buttonLeft = True
-    socket.send(e.tobytes())
-    sleep(pressTime)
-    e.reset()
-    socket.send(e.tobytes())
-    sleep(delayTime)
+    pressButton(JSEvent(buttonLeft = True))
 
 def pressRight():
-    e = JSEvent()
-    e.buttonRight = True
-    socket.send(e.tobytes())
-    sleep(pressTime)
-    e.reset()
-    socket.send(e.tobytes())
-    sleep(delayTime)
-
+    pressButton(JSEvent(buttonRight = True))
+    
 def pressDown():
-    e = JSEvent()
-    e.buttonDown = True
-    socket.send(e.tobytes())
-    sleep(pressTime)
-    e.reset()
-    socket.send(e.tobytes())
-    sleep(delayTime)
-
+    pressButton(JSEvent(buttonDown = True))
+    
 def pressUp():
-    e = JSEvent()
-    e.buttonUp = True
-    socket.send(e.tobytes())
-    sleep(pressTime)
-    e.reset()
-    socket.send(e.tobytes())
-    sleep(delayTime)
-
+    pressButton(JSEvent(buttonUp = True))
+    
 def pressBack():
-    e = JSEvent()
-    e.buttonO = True
-    socket.send(e.tobytes())
-    sleep(pressTime)
-    e.reset()
-    socket.send(e.tobytes())
-    sleep(delayTime)
+    pressButton(JSEvent(buttonO = True))    
+
+def pressSelect():
+    pressButton(JSEvent(buttonSelect = True))    
+
+def pressStart():
+    pressButton(JSEvent(buttonStart = True))    
+
+def pressGuide():
+    pressButton(JSEvent(buttonGuide = True))  
 
 amount = 0
 
@@ -155,10 +137,14 @@ def pressXrepeatedly(duration):
         i = i[20:80, 80:140]
         s = diffimg(i)
         if s >= 0.8:
-            return
+            return True
+    return False
 
 def maintoextra():
-    print("start")
+    global tickets
+    tickets += 1
+    print("start: %d tickets" % tickets)
+    sleep(1)
     pressLeft()
     pressX()
     print("cafe")
@@ -178,7 +164,7 @@ def menutoclaim():
     pressBack()
     pressBack()
     pressBack()
-    sleep(4)
+    sleep(5)
     print("back to main")
     pressRight()
     pressX()
@@ -195,12 +181,14 @@ def menutoclaim():
     print("yes")
     pressX()
     print("repeating X")
-    pressXrepeatedly(60)
+    success = pressXrepeatedly(60)
     print("exiting")
     sleep(1)
     pressBack()
     pressBack()
+    print("back to main")
     sleep(3)
+    return success
 
 
 def runloop1():
@@ -209,7 +197,7 @@ def runloop1():
     pressUp()
     pressX()
     print("Toyota 86")
-    menutoclaim()
+    return menutoclaim()
 
 def runloop3():
     print(datetime.datetime.now().strftime("%d/%m/%y %H:%M:%S"))
@@ -219,8 +207,40 @@ def runloop3():
     pressRight()
     pressX()
     print("Rotary")
-    menutoclaim()
+    return menutoclaim()
+
+def pressBackRepeatedly(duration):
+    start = time()
+    while (time() < start+duration):
+        pressBack()
+
+def restartGame():
+    print("*** Restarting Game***")
+    pressGuide()
+    sleep(2)
+    pressDown()
+    pressX()
+    sleep(2)
+    print("opening options")
+    pressStart()
+    sleep(2)
+    pressX()
+    print("closed game")
+    sleep(7)
+    pressX()
+    print("start game")
+    sleep(7)
+    print("repeatedly quit intro")
+    pressBackRepeatedly(20)
+    print("intro closed")
+    sleep(2)
+    pressX()
+    sleep(2)
+    pressRight()
+    
+
+restartGame()
 
 while True:
-    runloop1()
-    runloop3()
+    if runloop1() == False or runloop3() == False:
+        restartGame()
