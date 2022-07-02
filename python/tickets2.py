@@ -291,13 +291,12 @@ def menutoclaim():
     pressX()
     if waitfor('gifts', 10) == False:
         return False
-    sleep(0.5)
-    if cmpimg('nogifts') > 0.75:
-        return False
     pressX()
     print("selected ticket")
     pressX()
-    print("\033[A\033[0Kselected ticket - yes")
+    if cmpimg('nogifts') > 0.75:
+        return False
+    print("yes")
     pressX()
     if repeatX('gifts', 60) == False:
         return False
