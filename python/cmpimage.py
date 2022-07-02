@@ -9,7 +9,7 @@ fsocket.connect("tcp://localhost:5555")
 
 def diffimg(src, dst):
     error2 = cv2.norm(src, dst, cv2.NORM_L2)
-    similarity = 1- error2 / (60 * 60)
+    similarity = 1- error2 / (src.shape[0] * src.shape[1])
     return similarity
 
 def msgtoimg(msg):
@@ -58,12 +58,14 @@ giftsimg = loadimg("gifts-23-73-29-139.cv")
 cafeimg = loadimg("cafe-574-626-905-961.cv")
 nogiftsimg = loadimg("nogifts-341-410-583-675.cv")
 rotaryimg = loadimg("rotary-294-426-419-894.cv")
-img = loadimg("cafe-574-626-905-961.cv")
-print(diffimg(img[294:426, 419:894], rotaryimg[294:426, 419:894]))
-cv2.imshow("1", rotaryimg)
+toyota86img = loadimg("./toyota86-300-424-453-837.cv")
+img = loadimg("img.cv")
+print(diffimg(img[340:424, 453:837], toyota86img[340:424, 453:837]))
+print(diffimg(toyota86img, img))
+cv2.imshow("1", toyota86img)
 cv2.imshow("2", img)
-cv2.imshow("3", rotaryimg[294:426, 419:894])
-cv2.imshow("4", img[294:426, 419:894])
+cv2.imshow("3", toyota86img[340:424, 453:837])
+cv2.imshow("4", img[340:424, 453:837])
 
 cv2.waitKey(0)
 

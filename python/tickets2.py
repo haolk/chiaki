@@ -7,11 +7,13 @@ import cv2
 import pytesseract
 import re
 
-delayTime = 0.2 # 0.5 0.3
-pressTime = 0.025 # 0.2 0.15
+delayTime = 0.3 # 0.5 0.3
+pressTime = 0.03 # 0.2 0.15
 
 tickets = 0
 restarts = 0
+
+comparison = 0.5
 
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
@@ -104,7 +106,7 @@ amount = 0
 
 def diffimg(src, dst):
     error2 = cv2.norm(src, dst, cv2.NORM_L2)
-    similarity = 1- error2 / (60 * 60)
+    similarity = 1- error2 / (src.shape[0] * src.shape[1])
     return similarity
 
 def msgtoimg(msg):
@@ -117,6 +119,7 @@ def msgtoimg(msg):
     return img
 
 def fetchimg():
+    global msg
     fsocket.send_string('0')
     msg = fsocket.recv()
     if  len(msg) != 0:
@@ -124,30 +127,20 @@ def fetchimg():
     else:
         print("error!")
 
-def waitforimg(src, sx, ex, sy, ey, duration):
-    simg = src[sx:ex, sy:ey]
-    start = time()
-    while (time() < start+duration):
-        img = fetchimg()[sx:ex, sy:ey]
-        if (diffimg(simg, img) > 0.5):
-            return True
-    print(diffimg(simg, img))
-    return False
-
-def waitfornotimg(src, sx, ex, sy, ey, duration):
-    simg = src[sx:ex, sy:ey]
-    start = time()
-    while (time() < start+duration):
-        img = fetchimg()[sx:ex, sy:ey]
-        if (diffimg(simg, img) < 0.5):
-            return True
-    print(diffimg(simg, img))
-    return False
+images = {}
 
 def loadimg(name):
+    global images
     with open(name, 'rb') as file:
         msg = file.read()
-        return msgtoimg(msg)
+        img = msgtoimg(msg)
+        m = re.match('([^-]+)-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)\\.cv', name)
+        if m is not None:
+            images[m[1]] = {
+                'img': img,
+                'xy': (int(m[2]), int(m[3]), int(m[4]), int(m[5]))
+            }
+        return img
 
 garageimg = loadimg("garage-74-116-17-130.cv")
 mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
@@ -160,80 +153,115 @@ toyota86img = loadimg("toyota86-300-424-453-837.cv")
 rotaryimg = loadimg("rotary-294-426-419-894.cv")
 titleimg = loadimg("title-125-293-406-894.cv")
 
-def pressXrepeatedly(img, sx, ex, sy, ey, duration):
+def repeatX(name, duration):
+    global images
+    i = images[name]
+    if i == None:
+        print("repeat X %s not found" % name)
+        return False
+    src = i['img']
+    (sx, ex, sy, ey) = i['xy']
+    simg = src[sx:ex, sy:ey]
+    print("repeat X for %s for %d seconds" % (name, duration))
     start = time()
-    src = img[sx:ex, sy:ey]
     while (time() < start+duration):
+        print("\033[A\033[0Krepeat X for %s for %d seconds: %.2f" % (name, duration, time() - start))
         pressX()
         dst = fetchimg()[sx:ex, sy:ey]
-        s = diffimg(src, dst)
-        if s >= 0.5:
+        s = diffimg(simg, dst)
+        if s >= comparison:
+            print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
     return False
 
-def pressBackrepeatedly(img, sx, ex, sy, ey, duration):
+def repeatBack(name, duration):
+    global images
+    i = images[name]
+    if i == None:
+        print("repeat Back %s not found" % name)
+        return False
+    src = i['img']
+    (sx, ex, sy, ey) = i['xy']
+    simg = src[sx:ex, sy:ey]
+    print("repeat Back for %s for %d seconds" % (name, duration))
     start = time()
-    src = img[sx:ex, sy:ey]
     while (time() < start+duration):
+        print("\033[A\033[0Krepeat Back for %s for %d seconds: %.2f" % (name, duration, time() - start))
         pressBack()
         dst = fetchimg()[sx:ex, sy:ey]
-        s = diffimg(src, dst)
-        if s >= 0.5:
+        s = diffimg(simg, dst)
+        if s >= comparison:
+            print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
     return False
 
-def waitformainmenu(duration):
-    global mainmenuimg
-    return waitforimg(mainmenuimg, 74, 121, 1162, 1259, duration)
+def cmpimg(name):
+    global images
+    i = images[name]
+    if i == None:
+        print("cmpimg %s not found" % name)
+        return False
+    src = i['img']
+    (sx, ex, sy, ey) = i['xy']
+    simg = src[sx:ex, sy:ey]
+    i = fetchimg()
+    img = i[sx:ex, sy:ey]
+    s = diffimg(simg, img)
+    print("comparing %s: %f" % (name, s))
+    return s
 
-def waitfornotmainmenu(duration):
-    global mainmenuimg
-    return waitfornotimg(mainmenuimg, 74, 121, 1162, 1259, duration)
+def waitfor(name, duration):
+    global images
+    i = images[name]
+    if i == None:
+        print("waitfor %s not found" % name)
+        return False
+    src = i['img']
+    (sx, ex, sy, ey) = i['xy']
+    simg = src[sx:ex, sy:ey]
+    print("waiting for %s for %d seconds" % (name, duration))
+    start = time()
+    while (time() < start+duration):
+        print("\033[A\033[0Kwaiting for %s for %d seconds: %.2f" % (name, duration, time() - start))
+        i = fetchimg()
+        img = i[sx:ex, sy:ey]
+        s = diffimg(simg, img)
+        if (s > comparison):
+            print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+            return True
+    print(diffimg(simg, img))
 
-def waitforcafe(duration):
-    global cafeimg
-    return waitforimg(cafeimg, 574, 626, 905, 961, duration)
-
-def waitfornotcafe(duration):
-    global cafeimg
-    return waitfornotimg(cafeimg, 574, 626, 905, 961, duration)
-
-def waitforgarage(duration):
-    return waitforimg(garageimg, 74, 116, 17, 130, duration)
-
-def waitfornotgarage(duration):
-    return waitfornotimg(garageimg, 74, 116, 17, 130, duration)
-
-def waitforgifts(duration):
-    return waitforimg(giftsimg, 23, 73, 29, 139, duration)
-
-def waitfornotgifts(duration):
-    return waitfornotimg(giftsimg, 23, 73, 29, 139, duration)
-
-def waitfortoyota86pre(duration):
-    return waitforimg(toyota86preimg, 531, 587, 548, 728, duration)
-
-def waitforrotarypre(duration):
-    return waitforimg(rotarypreimg, 537, 591, 526, 754, duration)
-
-def waitfortoyota86(duration):
-    return waitforimg(toyota86img, 300, 424, 453, 837, duration)
-
-def waitforrotary(duration):
-    return waitforimg(rotaryimg, 294, 426, 419, 894, duration)
-
+def waitfornot(name, duration):
+    global images
+    i = images[name]
+    if i == None:
+        print("waitfornot %s not found" % name)
+        return False
+    src = i['img']
+    (sx, ex, sy, ey) = i['xy']
+    simg = src[sx:ex, sy:ey]
+    print("waiting for not %s for %d seconds" % (name, duration))
+    start = time()
+    while (time() < start+duration):
+        print("\033[A\033[0Kwaiting for not %s for %d seconds: %.2f" % (name, duration, time() - start))
+        i = fetchimg()
+        img = i[sx:ex, sy:ey]
+        s = diffimg(simg, img)
+        if (s < comparison):
+            print("\033[A\033[0Knot found %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+            return True
+    print(diffimg(simg, img))
+ 
 def maintoextra():
     global tickets, restarts
     tickets += 1
     print("start: %d tickets (%d restarts)" % (tickets, restarts))
-    if waitformainmenu(10) == False:
+    if waitfor('mainmenu', 10) == False:
         return False
     pressLeft()
     pressX()
-    print("wait for cafe")
-    if waitforcafe(10) == False:
+    if waitfor('cafe', 10) == False:
         return False
-    print("cafe")
     sleep(0.1)
     pressLeft()
     pressX()
@@ -241,7 +269,7 @@ def maintoextra():
     pressDown()
     pressRight()
     pressX()
-    print("extra menus")
+    print("\033[A\033[0Kmy collections - extra menus")
     return True
 
 def menutoclaim():
@@ -249,42 +277,33 @@ def menutoclaim():
     pressBack()
     pressBack()
     pressBack()
-    print("wait for main")
-    if waitformainmenu(10) == False:
+    if waitfor('mainmenu', 10) == False:
         return False
-    print("back to main")
     sleep(0.5)
     pressRight()
     pressX()
-    print("wait for garage")
-    if waitforgarage(10) == False:
+    if waitfor('garage', 10) == False:
         return False
-    print("garage")
     sleep(0.3)
     pressRight()
     pressRight()
     pressRight()
     pressX()
-    print("wait for gift")
-    if waitforgifts(10) == False:
+    if waitfor('gifts', 10) == False:
         return False
-    print("gift")
-    sleep(0.2)
-    if diffimg(nogiftsimg[341:410, 583:675], fetchimg()[341:410, 583:675]) > 0.75:
+    sleep(0.5)
+    if cmpimg('nogifts') > 0.75:
         return False
     pressX()
     print("selected ticket")
     pressX()
-    print("yes")
+    print("\033[A\033[0Kselected ticket - yes")
     pressX()
-    print("repeating X")
-    if pressXrepeatedly(giftsimg, 23, 73, 29, 139, 60) == False:
+    if repeatX('gifts', 60) == False:
         return False
-    print("exiting")
     sleep(0.5)
     pressBack()
-    print("waiting for not gifts")
-    if waitfornotgifts(10) == False:
+    if waitfornot('gifts', 10) == False:
         return False
     pressBack()
     print("back to main")
@@ -296,12 +315,10 @@ def runloop1():
         return False
     pressUp()
     pressX()
-    print("Toyota 86")
-    if waitfortoyota86pre(10) == False:
+    if waitfor('toyota86pre', 10) == False:
         return False
     pressX()
-    print("Waiting for Toyota86")
-    if waitfortoyota86(10) == False:
+    if waitfor('toyota86', 2) == False:
         return False
     return menutoclaim()
 
@@ -313,12 +330,10 @@ def runloop3():
     pressRight()
     pressRight()
     pressX()
-    print("Rotary")
-    if waitforrotarypre(10) == False:
+    if waitfor('rotarypre', 10) == False:
         return False
     pressX()
-    print("Waiting for Rotary")
-    if waitforrotary(2) == False:
+    if waitfor('rotary', 2) == False:
         return False
     return menutoclaim()
 
@@ -342,7 +357,7 @@ def restartGame():
     print("start game")
     sleep(7)
     print("repeatedly quit intro")
-    pressBackrepeatedly(titleimg, 125, 293, 406, 894, 20)
+    repeatBack('title', 20)
     print("intro closed")
     sleep(2)
     pressX()
