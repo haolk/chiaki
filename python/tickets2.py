@@ -129,8 +129,9 @@ def waitforimg(src, sx, ex, sy, ey, duration):
     start = time()
     while (time() < start+duration):
         img = fetchimg()[sx:ex, sy:ey]
-        if (diffimg(simg, img) > 0.8):
+        if (diffimg(simg, img) > 0.5):
             return True
+    print(diffimg(simg, img))
     return False
 
 def waitfornotimg(src, sx, ex, sy, ey, duration):
@@ -138,8 +139,9 @@ def waitfornotimg(src, sx, ex, sy, ey, duration):
     start = time()
     while (time() < start+duration):
         img = fetchimg()[sx:ex, sy:ey]
-        if (diffimg(simg, img) < 0.8):
+        if (diffimg(simg, img) < 0.5):
             return True
+    print(diffimg(simg, img))
     return False
 
 def loadimg(name):
@@ -152,8 +154,11 @@ mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
 giftsimg = loadimg("gifts-23-73-29-139.cv")
 cafeimg = loadimg("cafe-574-626-905-961.cv")
 nogiftsimg = loadimg("nogifts-341-410-583-675.cv")
-toyota86img = loadimg("toyota86pre-531-587-548-728.cv")
-rotaryimg = loadimg("rotarypre-537-591-526-754.cv")
+toyota86preimg = loadimg("toyota86pre-531-587-548-728.cv")
+rotarypreimg = loadimg("rotarypre-537-591-526-754.cv")
+toyota86img = loadimg("toyota86-300-424-453-837.cv")
+rotaryimg = loadimg("rotary-294-426-419-894.cv")
+titleimg = loadimg("title-125-293-406-894.cv")
 
 def pressXrepeatedly(img, sx, ex, sy, ey, duration):
     start = time()
@@ -162,7 +167,18 @@ def pressXrepeatedly(img, sx, ex, sy, ey, duration):
         pressX()
         dst = fetchimg()[sx:ex, sy:ey]
         s = diffimg(src, dst)
-        if s >= 0.8:
+        if s >= 0.5:
+            return True
+    return False
+
+def pressBackrepeatedly(img, sx, ex, sy, ey, duration):
+    start = time()
+    src = img[sx:ex, sy:ey]
+    while (time() < start+duration):
+        pressBack()
+        dst = fetchimg()[sx:ex, sy:ey]
+        s = diffimg(src, dst)
+        if s >= 0.5:
             return True
     return False
 
@@ -194,11 +210,17 @@ def waitforgifts(duration):
 def waitfornotgifts(duration):
     return waitfornotimg(giftsimg, 23, 73, 29, 139, duration)
 
+def waitfortoyota86pre(duration):
+    return waitforimg(toyota86preimg, 531, 587, 548, 728, duration)
+
+def waitforrotarypre(duration):
+    return waitforimg(rotarypreimg, 537, 591, 526, 754, duration)
+
 def waitfortoyota86(duration):
-    return waitforimg(toyota86img, 531, 587, 548, 728, duration)
+    return waitforimg(toyota86img, 300, 424, 453, 837, duration)
 
 def waitforrotary(duration):
-    return waitforimg(rotaryimg, 537, 591, 526, 754, duration)
+    return waitforimg(rotaryimg, 294, 426, 419, 894, duration)
 
 def maintoextra():
     global tickets, restarts
@@ -223,8 +245,7 @@ def maintoextra():
     return True
 
 def menutoclaim():
-    pressX()
-    sleep(3)
+    sleep(0.3)
     pressBack()
     pressBack()
     pressBack()
@@ -239,7 +260,7 @@ def menutoclaim():
     if waitforgarage(10) == False:
         return False
     print("garage")
-    sleep(0.2)
+    sleep(0.3)
     pressRight()
     pressRight()
     pressRight()
@@ -276,6 +297,10 @@ def runloop1():
     pressUp()
     pressX()
     print("Toyota 86")
+    if waitfortoyota86pre(10) == False:
+        return False
+    pressX()
+    print("Waiting for Toyota86")
     if waitfortoyota86(10) == False:
         return False
     return menutoclaim()
@@ -289,14 +314,13 @@ def runloop3():
     pressRight()
     pressX()
     print("Rotary")
-    if waitforrotary(10) == False:
+    if waitforrotarypre(10) == False:
+        return False
+    pressX()
+    print("Waiting for Rotary")
+    if waitforrotary(2) == False:
         return False
     return menutoclaim()
-
-def pressBackRepeatedly(duration):
-    start = time()
-    while (time() < start+duration):
-        pressBack()
 
 def restartGame():
     global tickets, restarts
@@ -318,7 +342,7 @@ def restartGame():
     print("start game")
     sleep(7)
     print("repeatedly quit intro")
-    pressBackRepeatedly(20)
+    pressBackrepeatedly(titleimg, 125, 293, 406, 894, 20)
     print("intro closed")
     sleep(2)
     pressX()
