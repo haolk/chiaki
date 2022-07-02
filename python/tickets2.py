@@ -13,7 +13,7 @@ pressTime = 0.03 # 0.2 0.15
 tickets = 0
 restarts = 0
 
-comparison = 0.5
+comparison = 0.3
 
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
@@ -172,6 +172,7 @@ def repeatX(name, duration):
         if s >= comparison:
             print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
+    print("\033[A\033[0Kfail to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
     return False
 
 def repeatBack(name, duration):
@@ -193,6 +194,7 @@ def repeatBack(name, duration):
         if s >= comparison:
             print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
+    print("\033[A\033[0Kfailed to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
     return False
 
 def cmpimg(name):
@@ -229,7 +231,8 @@ def waitfor(name, duration):
         if (s > comparison):
             print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
-    print(diffimg(simg, img))
+    print("\033[A\033[0Kfailed to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    return False
 
 def waitfornot(name, duration):
     global images
@@ -250,8 +253,9 @@ def waitfornot(name, duration):
         if (s < comparison):
             print("\033[A\033[0Knot found %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
             return True
-    print(diffimg(simg, img))
- 
+    print("\033[A\033[0Kfailed to not find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    return False
+
 def maintoextra():
     global tickets, restarts
     tickets += 1
