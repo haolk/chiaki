@@ -13,7 +13,7 @@ pressTime = 0.03 # 0.2 0.15
 tickets = 0
 restarts = 0
 
-comparison = 0.3
+comparison = 0.5
 
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
@@ -164,15 +164,15 @@ def repeatX(name, duration):
     src = i['img']
     (sx, ex, sy, ey) = i['xy']
     simg = src[sx:ex, sy:ey]
-    print("repeat X for %s for %d seconds" % (name, duration))
     start = time()
+    print("   repeat X in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
-        print("\033[A\033[0Krepeat X for %s for %d seconds: %.2f" % (name, duration, time() - start))
         pressX()
         dst = fetchimg()[sx:ex, sy:ey]
         s = diffimg(simg, dst)
+        print("\033[A\033[0K   repeat X in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
         if s >= comparison:
-            print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+            print("\033[A\033[0K   repeat X in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
             return True
     print("\033[A\033[0Kfail to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
     with open('reject.cv', 'wb') as file:
@@ -190,13 +190,14 @@ def repeatBack(name, duration):
     simg = src[sx:ex, sy:ey]
     print("repeat Back for %s for %d seconds" % (name, duration))
     start = time()
+    print("repeat Back in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
-        print("\033[A\033[0Krepeat Back for %s for %d seconds: %.2f" % (name, duration, time() - start))
         pressBack()
         dst = fetchimg()[sx:ex, sy:ey]
         s = diffimg(simg, dst)
+        print("\033[A\033[0Krepeat Back in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
         if s >= comparison:
-            print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+            print("\033[A\033[0Krepeat Back in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
             return True
     print("\033[A\033[0Kfailed to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
     with open('reject.cv', 'wb') as file:
@@ -215,7 +216,6 @@ def cmpimg(name):
     i = fetchimg()
     img = i[sx:ex, sy:ey]
     s = diffimg(simg, img)
-    print("comparing %s: %f" % (name, s))
     return s
 
 def waitfor(name, duration):
@@ -226,20 +226,20 @@ def waitfor(name, duration):
     if None in im:
         print("waitfor %s not found" % name)
         return False
-    print("waiting for %s for %d seconds" % (name, duration))
     start = time()
+    print("    waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
-        print("\033[A\033[0Kwaiting for %s for %d seconds: %.2f" % (name, duration, time() - start))
         i = fetchimg()
         for x in im:
             simg = x['cimg']
             (sx, ex, sy, ey) = x['xy']
             img = i[sx:ex, sy:ey]
             s = diffimg(simg, img)
+            print("\033[A\033[0K    waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
             if (s > comparison):
-                print("\033[A\033[0Kfound %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+                print("\033[A\033[0K      found in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
                 return True
-    print("\033[A\033[0Kfailed to find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    print("\033[A\033[0Kfailed to find %s in %05.2f seconds (%f - %d)" % (name, time() - start, s, duration))
     with open('reject.cv', 'wb') as file:
         file.write(msg)
     return False
@@ -253,17 +253,17 @@ def waitfornot(name, duration):
     src = i['img']
     (sx, ex, sy, ey) = i['xy']
     simg = src[sx:ex, sy:ey]
-    print("waiting for not %s for %d seconds" % (name, duration))
     start = time()
+    print("not waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
-        print("\033[A\033[0Kwaiting for not %s for %d seconds: %.2f" % (name, duration, time() - start))
         i = fetchimg()
         img = i[sx:ex, sy:ey]
         s = diffimg(simg, img)
+        print("\033[A\033[0Knot waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
         if (s < comparison):
-            print("\033[A\033[0Knot found %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+            print("\033[A\033[0K  not found in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
             return True
-    print("\033[A\033[0Kfailed to not find %s in %.2f seconds (%f - %d)" % (name, time() - start, s, duration))
+    print("\033[A\033[0Kfailed to not find %s in %02.02f seconds (%f - %d)" % (name, time() - start, s, duration))
     with open('reject.cv', 'wb') as file:
         file.write(msg)
     return False
@@ -285,7 +285,7 @@ def maintoextra():
     pressDown()
     pressRight()
     pressX()
-    print("\033[A\033[0Kmy collections - extra menus")
+    print("\033[A\033[0Kmy collections - extra menus\033[A")
     return True
 
 def menutoclaim():
@@ -310,9 +310,10 @@ def menutoclaim():
     pressX()
     print("selected ticket")
     pressX()
+    df = cmpimg('nogifts')
+    print("\033[A\033[0K          comparing images (% 2.5f) for %s" % (df, 'nogifts'))
     if cmpimg('nogifts') > 0.75:
         return False
-    print("yes")
     pressX()
     if repeatX('gifts', 60) == False:
         return False
@@ -321,7 +322,6 @@ def menutoclaim():
     if waitfornot('gifts', 10) == False:
         return False
     pressBack()
-    print("back to main")
     return True
 
 def runloop1():
