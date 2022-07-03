@@ -22,19 +22,35 @@ import re
 # img-14-start-pan-america-race-2.cv [80:110, 150:560] 'pan-american championship race 2' [630:650, 330:380] 'start'
 # img-15-exit-pan-america-race-2.cv [300:360, 430:870] 'are you sure you want to retire from the championship'
 
-with open('img.cv', 'rb') as file:
-    msg = file.read()
 
-    height = int.from_bytes(msg[0:2], byteorder='little')
-    width = int.from_bytes(msg[2:4], byteorder='little')
-    channel = int.from_bytes(msg[4:6], byteorder='little')
-    img = numpy.frombuffer(msg, numpy.uint8, -1, 6)
-    img.shape = (height, width, channel)
-    img = img[:, :, ::-1].copy()
-    img = img[20:80, 80:140]
-    text = pytesseract.image_to_string(img).lower()
-    print(text)
-    if re.search('gift', text):
-        print("found")
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
+
+def loadimg(name):
+    with open(name, 'rb') as file:
+        msg = file.read()
+
+        height = int.from_bytes(msg[0:2], byteorder='little')
+        width = int.from_bytes(msg[2:4], byteorder='little')
+        channel = int.from_bytes(msg[4:6], byteorder='little')
+        img = numpy.frombuffer(msg, numpy.uint8, -1, 6)
+        img.shape = (height, width, channel)
+        img = img[:, :, ::-1].copy()
+
+        m = re.match('([^-]+)-(\d+)-(\d+)-(\d+)-(\d+)\\.cv', name)
+        if m is not None:
+            (sy, ey, sx, ex) = (int(m[2]), int(m[3]), int(m[4]), int(m[5]))
+            cv2.rectangle(img, (sx, sy), (ex, ey), (0, 255, 255), 2)
+            print("%d %d %d %d" % (sx, sy, ex, ey))
+
+            img2 = img[sx:ex, sy:ey]
+            cv2.imshow('img2', img2)
+
+            text = pytesseract.image_to_string(img2).lower()
+            print(text)
+            if re.search('gift', text):
+                print("found")
+            cv2.imshow('img2', img2)
+
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
+
+loadimg('cafe-563-612-463-493.cv')

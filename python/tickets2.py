@@ -13,7 +13,7 @@ pressTime = 0.075 # 0.2 0.15
 tickets = 0
 restarts = 0
 
-comparison = 0.5
+comparison = 0.6
 
 class JSEvent:
     def __init__(self, buttonX=False, buttonO=False, buttonS=False, buttonT=False,
@@ -136,13 +136,23 @@ def loadimg(name):
         img = msgtoimg(msg)
         m = re.match('([^-]+)-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)\\.cv', name)
         if m is not None:
+            (sy, ey, sx, ex) = (int(m[2]), int(m[3]), int(m[4]), int(m[5]))
             images[m[1]] = {
                 'img': img,
-                'xy': (int(m[2]), int(m[3]), int(m[4]), int(m[5])),
-                'cimg': img[int(m[2]):int(m[3]), int(m[4]):int(m[5])]
+                'xy': (sy, ey, sx, ex),
+                'cimg': img[sy:ey, sx:ex]
             }
         return img
 
+def croptoimg(name, img):
+    global images
+    i = images[name]
+    if i == None:
+        print("croptoimg %s not found" % name)
+        return None
+    (sy, ey, sx, ex) = i['xy']
+    return img[sy:ey, sx:ex]
+    
 garageimg = loadimg("garage-74-116-17-130.cv")
 mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
 giftsimg = loadimg("gifts-23-73-29-139.cv")
@@ -163,13 +173,13 @@ def repeatX(name, duration):
         print("repeat X %s not found" % name)
         return False
     src = i['img']
-    (sx, ex, sy, ey) = i['xy']
-    simg = src[sx:ex, sy:ey]
+    (sy, ey, sx, ex) = i['xy']
+    simg = src[sy:ey, sx:ex]
     start = time()
     print("   repeat X in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
         pressX()
-        dst = fetchimg()[sx:ex, sy:ey]
+        dst = fetchimg()[sy:ey, sx:ex]
         s = diffimg(simg, dst)
         print("\033[A\033[0K   repeat X in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
         if s >= comparison:
@@ -187,13 +197,13 @@ def repeatBack(name, duration):
         print("repeat Back %s not found" % name)
         return False
     src = i['img']
-    (sx, ex, sy, ey) = i['xy']
-    simg = src[sx:ex, sy:ey]
+    (sy, ey, sx, ex) = i['xy']
+    simg = src[sy:ey, sx:ex]
     start = time()
     print("repeat Back in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
         pressBack()
-        dst = fetchimg()[sx:ex, sy:ey]
+        dst = fetchimg()[sy:ey, sx:ex]
         s = diffimg(simg, dst)
         print("\033[A\033[0Krepeat Back in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
         if s >= comparison:
@@ -232,8 +242,8 @@ def waitfor(name, duration):
         i = fetchimg()
         for x in im:
             simg = x['cimg']
-            (sx, ex, sy, ey) = x['xy']
-            img = i[sx:ex, sy:ey]
+            (sy, ey, sx, ex) = x['xy']
+            img = i[sy:ey, sx:ex]
             s = diffimg(simg, img)
             print("\033[A\033[0K    waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
             if (s > comparison):
@@ -251,13 +261,13 @@ def waitfornot(name, duration):
         print("waitfornot %s not found" % name)
         return False
     src = i['img']
-    (sx, ex, sy, ey) = i['xy']
-    simg = src[sx:ex, sy:ey]
+    (sy, ey, sx, ex) = i['xy']
+    simg = src[sy:ey, sx:ex]
     start = time()
     print("not waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, 0, name))
     while (time() < start+duration):
         i = fetchimg()
-        img = i[sx:ex, sy:ey]
+        img = i[sy:ey, sx:ex]
         s = diffimg(simg, img)
         print("\033[A\033[0Knot waiting in %05.2f/%05.2f (% 2.5f) for %s" % (time() - start, duration, s, name))
         if (s < comparison):
