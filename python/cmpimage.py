@@ -55,7 +55,7 @@ def loadimg(name):
     with open(name, 'rb') as file:
         msg = file.read()
         img = msgtoimg(msg)
-        m = re.match('([^-]+)-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)\\.cv', name)
+        m = re.match('([^-]+)-(\d+)-(\d+)-(\d+)-(\d+)\\.cv', name)
         if m is not None:
             images[m[1]] = {
                 'img': img,
