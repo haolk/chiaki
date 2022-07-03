@@ -8,7 +8,7 @@ import pytesseract
 import re
 
 delayTime = 0.3 # 0.5 0.3
-pressTime = 0.05 # 0.2 0.15
+pressTime = 0.075 # 0.2 0.15
 
 tickets = 0
 restarts = 0
@@ -146,7 +146,7 @@ def loadimg(name):
 garageimg = loadimg("garage-74-116-17-130.cv")
 mainmenuimg = loadimg("mainmenu-74-121-1162-1259.cv")
 giftsimg = loadimg("gifts-23-73-29-139.cv")
-cafeimg = loadimg("cafe-574-626-905-961.cv")
+cafeimg = loadimg("cafe-563-612-463-493.cv")
 cafealtimg = loadimg("cafealt-561-606-531-557.cv")
 cafealt2img = loadimg("cafealt2-562-613-397-424.cv")
 nogiftsimg = loadimg("nogifts-341-410-583-675.cv")
@@ -287,7 +287,7 @@ def maintoextra():
     pressRight()
     pressX()
     print("\033[A\033[0Kmy collections - extra menus\033[A")
-    sleep(0.2)
+    sleep(0.3)
     return True
 
 def menutoclaim():
@@ -335,6 +335,7 @@ def runloop1():
     pressX()
     if waitfor('toyota86pre', 10) == False:
         return False
+    sleep(0.2)
     pressX()
     if waitfor('toyota86', 4) == False:
         return False
@@ -350,6 +351,7 @@ def runloop3():
     pressX()
     if waitfor('rotarypre', 10) == False:
         return False
+    sleep(0.2)
     pressX()
     if waitfor('rotary', 4) == False:
         return False
