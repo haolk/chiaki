@@ -44,6 +44,7 @@ export CPATH=/opt/homebrew/include
 export LIBRARY_PATH=/usr/local/lib
 git submodule update --init
 mkdir build && cd build
+export CMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.15.1/
 cmake ..
 make
 ```
